@@ -2,12 +2,12 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>与顾婞烽的浪漫时光</title>
+    <title>顾婞烽</title>
     <style>
         :root {
             --pink-1: #ff9ec8;
-            --pink-2: #ff85bb;
-            --pink-3: #ff6da8;
+            --pink-2: #ff6da8;
+            --pink-3: #ff3f6c;
         }
 
         body {
@@ -18,12 +18,11 @@
             align-items: center;
             justify-content: center;
             font-family: 'Microsoft Yahei', cursive;
-            margin: 0;
             position: relative;
             overflow: hidden;
         }
 
-        /* 漂浮心形动画 */
+        /* 心形雨动画（参考网页7） */
         .hearts span {
             position: absolute;
             background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="%23ff3f6c" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>');
@@ -45,7 +44,6 @@
             box-shadow: 0 10px 30px rgba(255, 158, 200, 0.3);
             text-align: center;
             z-index: 1;
-            position: relative;
             backdrop-filter: blur(5px);
         }
 
@@ -71,21 +69,11 @@
             transition: transform 0.3s ease;
         }
 
-        .time-unit:hover {
-            transform: translateY(-5px);
-        }
-
         .number {
             font-size: 2.8em;
             color: #e83f6c;
             font-weight: 700;
             text-shadow: 1px 1px 2px rgba(232, 63, 108, 0.3);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
         }
 
         .label {
@@ -101,7 +89,6 @@
             vertical-align: super;
         }
 
-        /* 响应式设计 */
         @media (max-width: 768px) {
             .container { padding: 1.5rem; }
             .timer { grid-template-columns: 1fr 1fr; }
@@ -111,7 +98,6 @@
     </style>
 </head>
 <body>
-    <!-- 漂浮心形 -->
     <div class="hearts">
         <span style="left:10%"></span>
         <span style="left:30%"></span>
@@ -124,16 +110,16 @@
         <h1>喜欢顾婞烽的第 <span id="totalDays">0</span> 天</h1>
         <div class="timer">
             <div class="time-unit">
-                <span class="number" id="years">0</span>
-                <span class="label">年</span>
-            </div>
-            <div class="time-unit">
-                <span class="number" id="months">0</span>
-                <span class="label">月</span>
-            </div>
-            <div class="time-unit">
                 <span class="number" id="days">0</span>
-                <span class="label">日</span>
+                <span class="label">天</span>
+            </div>
+            <div class="time-unit">
+                <span class="number" id="hours">0</span>
+                <span class="label">小时</span>
+            </div>
+            <div class="time-unit">
+                <span class="number" id="minutes">0</span>
+                <span class="label">分</span>
             </div>
             <div class="time-unit">
                 <span class="number" id="seconds">0</span>
@@ -143,64 +129,48 @@
     </div>
 
     <script>
-        // 设置纪念日（2023年12月11日 UTC时间）
+        // 纪念日设置（2023年12月11日 UTC时间）
         const startDate = new Date(Date.UTC(2023, 11, 11)); // 月份0-11
 
         function calculateDuration() {
             const now = new Date();
-            const startYear = startDate.getUTCFullYear();
-            const startMonth = startDate.getUTCMonth();
-            const startDay = startDate.getUTCDate();
-
-            // 计算总毫秒差
             const diff = now - startDate;
-
-            // 计算总天数
+            
+            // 总天数计算（网页8算法）
             const totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-            // 计算详细时间差
-            let years = now.getUTCFullYear() - startYear;
-            let months = now.getUTCMonth() - startMonth;
-            let days = now.getUTCDate() - startDay;
-            const hours = now.getUTCHours();
-            const minutes = now.getUTCMinutes();
-            const seconds = now.getUTCSeconds();
-
-            // 天数修正
-            if (days < 0) {
-                months--;
-                const lastDayOfMonth = new Date(now.getUTCFullYear(), now.getUTCMonth(), 0).getUTCDate();
-                days = lastDayOfMonth - startDay + now.getUTCDate();
-            }
-
-            // 月份修正
-            if (months < 0) {
-                years--;
-                months += 12;
-            }
+            
+            // 精确时间分解（网页6标准算法）
+            let totalSeconds = Math.floor(diff / 1000);
+            const days = Math.floor(totalSeconds / 86400);
+            totalSeconds %= 86400;
+            const hours = Math.floor(totalSeconds / 3600);
+            totalSeconds %= 3600;
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
 
             return { 
-                years, 
-                months, 
-                days: days < 0 ? 0 : days,
-                seconds: (hours * 3600) + (minutes * 60) + seconds,
-                totalDays
+                totalDays,
+                days, 
+                hours: hours.toString().padStart(2,'0'),
+                minutes: minutes.toString().padStart(2,'0'),
+                seconds: seconds.toString().padStart(2,'0')
             };
         }
 
         function updateTimer() {
             const duration = calculateDuration();
-            document.getElementById('years').textContent = duration.years;
-            document.getElementById('months').textContent = duration.months;
-            document.getElementById('days').textContent = duration.days;
-            document.getElementById('seconds').textContent = duration.seconds;
             document.getElementById('totalDays').textContent = duration.totalDays;
+            document.getElementById('days').textContent = duration.days;
+            document.getElementById('hours').textContent = duration.hours;
+            document.getElementById('minutes').textContent = duration.minutes;
+            document.getElementById('seconds').textContent = duration.seconds;
+
+            // 精准时间同步（网页6优化方案）
+            const now = new Date();
+            setTimeout(updateTimer, 1000 - now.getMilliseconds());
         }
 
-        // 初始更新
         updateTimer();
-        // 每秒更新（精确到秒级变化）
-        setInterval(updateTimer, 1000);
     </script>
 </body>
 </html>
