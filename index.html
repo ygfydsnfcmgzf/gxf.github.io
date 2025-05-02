@@ -2,132 +2,63 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>喜欢顾婞烽的第XX天</title>
+    <title>实时秒表</title>
     <style>
         body {
-            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            background: #1a1a1a;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            font-family: 'Microsoft Yahei', sans-serif;
+            align-items: center;
+            font-family: 'Segoe UI', sans-serif;
         }
-
-        .container {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 2rem 4rem;
+        
+        .clock {
+            font-size: 8vw;
+            color: #00ff9d;
+            text-shadow: 0 0 20px rgba(0,255,157,0.5);
+            padding: 2rem;
+            border: 3px solid #00ff9d;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
-            margin: 1rem; /* 新增响应式边距 */
+            background: rgba(0,0,0,0.8);
+        }
+        
+        .colon {
+            animation: blink 1s infinite;
         }
 
-        h1 {
-            color: #e74c3c;
-            margin-bottom: 2rem;
-            font-size: clamp(1.8rem, 5vw, 2.5rem); /* 响应式字体 */
+        @keyframes blink {
+            50% { opacity: 0.3; }
         }
 
-        .timer {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            max-width: 600px; /* 限制最大宽度 */
-        }
-
-        .time-unit {
-            background: #fff;
-            padding: 1rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            min-width: 90px; /* 防止内容挤压 */
-        }
-
-        .number {
-            font-size: 2em;
-            color: #2c3e50;
-            font-weight: bold;
-        }
-
-        .label {
-            color: #7f8c8d;
-            margin-top: 0.5rem;
-            display: block;
-        }
-
-        @media (max-width: 480px) {
-            .container { padding: 1.5rem; }
-            .timer { grid-template-columns: 1fr; }
+        @media (max-width: 768px) {
+            .clock { font-size: 15vw; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>喜欢顾婞烽的第 <span id="totalDays">0</span> 天</h1>
-        <div class="timer">
-            <div class="time-unit">
-                <span class="number" id="years">0</span>
-                <span class="label">年</span>
-            </div>
-            <div class="time-unit">
-                <span class="number" id="months">0</span>
-                <span class="label">月</span>
-            </div>
-            <div class="time-unit">
-                <span class="number" id="days">0</span>
-                <span class="label">日</span>
-            </div>
-        </div>
-    </div>
+    <div class="clock" id="timer">00:00:00</div>
 
     <script>
-        // 设置纪念日（2023年12月11日 UTC时间）
-        const startDate = new Date(Date.UTC(2023, 11, 11)); // 月份0-11
-
-        function calculateDuration() {
-            const now = new Date();
-            const startYear = startDate.getUTCFullYear();
-            const startMonth = startDate.getUTCMonth();
-            const startDay = startDate.getUTCDate();
-
-            let years = now.getUTCFullYear() - startYear;
-            let months = now.getUTCMonth() - startMonth;
-            let days = now.getUTCDate() - startDay;
-
-            // 天数修正
-            if (days < 0) {
-                months--;
-                const lastDayOfMonth = new Date(now.getUTCFullYear(), now.getUTCMonth(), 0).getUTCDate();
-                days = lastDayOfMonth - startDay + now.getUTCDate();
-            }
-
-            // 月份修正
-            if (months < 0) {
-                years--;
-                months += 12;
-            }
-
-            // 计算总天数（UTC日期差）
-            const startUTC = Date.UTC(startYear, startMonth, startDay);
-            const nowUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-            const totalDays = Math.floor((nowUTC - startUTC) / (1000 * 3600 * 24));
-
-            return { years, months, days: days < 0 ? 0 : days, totalDays };
-        }
-
+        // 高性能时间更新方案（参考网页2、6、7）
         function updateTimer() {
-            const duration = calculateDuration();
-            document.getElementById('years').textContent = duration.years;
-            document.getElementById('months').textContent = duration.months;
-            document.getElementById('days').textContent = duration.days;
-            document.getElementById('totalDays').textContent = duration.totalDays;
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            // 使用DOM片段减少重绘（参考网页4）
+            const timeString = `${hours}<span class="colon">:</span>${minutes}<span class="colon">:</span>${seconds}`;
+            document.getElementById('timer').innerHTML = timeString;
+            
+            // 同步系统时间（参考网页7）
+            const millis = now.getMilliseconds();
+            const delay = 1000 - millis;
+            setTimeout(updateTimer, delay);
         }
 
-        // 初始更新
+        // 初始执行
         updateTimer();
-        // 每秒更新（精确到日级变化）
-        setInterval(updateTimer, 1000);
     </script>
 </body>
 </html>
