@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>喜欢顾婞烽的第XX天</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Microsoft Yahei', sans-serif;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem 4rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            margin: 1rem; /* 新增响应式边距 */
+        }
+
+        h1 {
+            color: #e74c3c;
+            margin-bottom: 2rem;
+            font-size: clamp(1.8rem, 5vw, 2.5rem); /* 响应式字体 */
+        }
+
+        .timer {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            max-width: 600px; /* 限制最大宽度 */
+        }
+
+        .time-unit {
+            background: #fff;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            min-width: 90px; /* 防止内容挤压 */
+        }
+
+        .number {
+            font-size: 2em;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .label {
+            color: #7f8c8d;
+            margin-top: 0.5rem;
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 1.5rem; }
+            .timer { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>喜欢顾婞烽的第 <span id="totalDays">0</span> 天</h1>
+        <div class="timer">
+            <div class="time-unit">
+                <span class="number" id="years">0</span>
+                <span class="label">年</span>
+            </div>
+            <div class="time-unit">
+                <span class="number" id="months">0</span>
+                <span class="label">月</span>
+            </div>
+            <div class="time-unit">
+                <span class="number" id="days">0</span>
+                <span class="label">日</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 设置纪念日（2023年12月11日 UTC时间）
+        const startDate = new Date(Date.UTC(2023, 11, 11)); // 月份0-11
+
+        function calculateDuration() {
+            const now = new Date();
+            const startYear = startDate.getUTCFullYear();
+            const startMonth = startDate.getUTCMonth();
+            const startDay = startDate.getUTCDate();
+
+            let years = now.getUTCFullYear() - startYear;
+            let months = now.getUTCMonth() - startMonth;
+            let days = now.getUTCDate() - startDay;
+
+            // 天数修正
+            if (days < 0) {
+                months--;
+                const lastDayOfMonth = new Date(now.getUTCFullYear(), now.getUTCMonth(), 0).getUTCDate();
+                days = lastDayOfMonth - startDay + now.getUTCDate();
+            }
+
+            // 月份修正
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            // 计算总天数（UTC日期差）
+            const startUTC = Date.UTC(startYear, startMonth, startDay);
+            const nowUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+            const totalDays = Math.floor((nowUTC - startUTC) / (1000 * 3600 * 24));
+
+            return { years, months, days: days < 0 ? 0 : days, totalDays };
+        }
+
+        function updateTimer() {
+            const duration = calculateDuration();
+            document.getElementById('years').textContent = duration.years;
+            document.getElementById('months').textContent = duration.months;
+            document.getElementById('days').textContent = duration.days;
+            document.getElementById('totalDays').textContent = duration.totalDays;
+        }
+
+        // 初始更新
+        updateTimer();
+        // 每秒更新（精确到日级变化）
+        setInterval(updateTimer, 1000);
+    </script>
+</body>
+</html>
